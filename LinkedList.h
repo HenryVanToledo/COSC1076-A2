@@ -25,6 +25,7 @@ public:
     Node* find(const string& id) const;
     void remove(const string& id);
     int getNextID() const;
+    Node* getHead() const;
 
 private:
     Node* head;
