@@ -1,4 +1,16 @@
 #include "LinkedList.h"
+<<<<<<< HEAD
+
+LinkedList::LinkedList() {
+   head = nullptr;
+
+   // TODO
+}
+
+LinkedList::~LinkedList() {
+    // TODO
+}
+=======
 #include <iomanip>
 
 LinkedList::LinkedList() : head(nullptr) {}
@@ -82,8 +94,9 @@ int LinkedList::getNextID() const {
         current = current->next;
     }
     return maxID + 1;
-}
+}git s
 
 Node* LinkedList::getHead() const {
     return head;
 }
+>>>>>>> 7ffdc51f9656bfc6d7134e12694da43c49a7152b

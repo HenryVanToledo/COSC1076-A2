@@ -2,7 +2,10 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+<<<<<<< HEAD
+=======
 #include <iomanip>
+>>>>>>> 7ffdc51f9656bfc6d7134e12694da43c49a7152b
 #include "LinkedList.h"
 #include "Coin.h"
 
@@ -18,6 +21,9 @@ void displayMenu() {
     cout << "5. Remove Food" << endl;
     cout << "6. Display Balance" << endl;
     cout << "7. Abort Program" << endl;
+<<<<<<< HEAD
+    cout << "Select your option (1-7): " << endl;
+=======
     cout << "Select your option (1-7): ";
 }
 
@@ -204,6 +210,7 @@ void removeFoodItem(LinkedList& foodList) {
 
     foodList.remove(foodID);
     cout << "\"" << foodID << " - " << foodItem->name << " - " << foodItem->desc << "\" has been removed from the system." << endl;
+>>>>>>> 7ffdc51f9656bfc6d7134e12694da43c49a7152b
 }
 
 int main(int argc, char* argv[]) {
@@ -229,16 +236,23 @@ int main(int argc, char* argv[]) {
     string line;
     // Load food data
     while (getline(foods, line)) {
+<<<<<<< HEAD
+=======
         if (!validateFoodLine(line)) {
             cerr << "Error: Invalid food data format." << endl;
             return 1;
         }
+>>>>>>> 7ffdc51f9656bfc6d7134e12694da43c49a7152b
         stringstream ss(line);
         string id, name, desc, priceStr;
         getline(ss, id, '|');
         getline(ss, name, '|');
         getline(ss, desc, '|');
         getline(ss, priceStr);
+<<<<<<< HEAD
+        // Assuming price is valid here for simplicity, but should validate
+=======
+>>>>>>> 7ffdc51f9656bfc6d7134e12694da43c49a7152b
         double price = stod(priceStr);
         foodList.insertSorted(id, name, desc, price);
     }
@@ -246,6 +260,49 @@ int main(int argc, char* argv[]) {
     // Load coin data
     int coinIndex = 0;
     while (getline(coins, line)) {
+<<<<<<< HEAD
+        stringstream ss(line);
+        int denom, quantity;
+        ss >> denom;
+        ss.ignore(); // ignore the comma
+        ss >> quantity;
+        coinArray[coinIndex++] = Coin(denom, quantity);
+    }
+
+    // Display menu and handle user input
+    while (true) {
+        displayMenu();
+        int choice;
+        cin >> choice;
+        switch (choice) {
+            case 1:
+                foodList.display();
+                break;
+            case 2:
+                // Implement purchase meal
+                break;
+            case 3:
+                // Save data and exit
+                break;
+            case 4:
+                // Add food
+                break;
+            case 5:
+                // Remove food
+                break;
+            case 6:
+                // Display balance
+                break;
+            case 7:
+                // Abort program
+                return 0;
+            default:
+                cerr << "Invalid option. Please try again." << endl;
+        }
+    }
+
+    return 0;
+=======
         if (!validateCoinLine(line)) {
 cerr << "Error: Invalid coin data format." << endl;
 return 1;
@@ -290,4 +347,5 @@ while (true) {
 }
 
 return 0;
+>>>>>>> 7ffdc51f9656bfc6d7134e12694da43c49a7152b
 }

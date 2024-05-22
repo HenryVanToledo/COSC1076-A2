@@ -14,6 +14,19 @@ enum Denomination
 
 // represents a coin type stored in the cash register perhaps. Each demonination
 // will have exactly one of these in the cash register.
+<<<<<<< HEAD
+class Coin
+{
+public:
+    // the denomination type
+    enum Denomination denom;
+    
+    // the count of how many of these are in the cash register
+    unsigned count;
+};
+
+#endif // COIN_H
+=======
 class Coin {
 public:
     Coin();
@@ -31,3 +44,4 @@ private:
 
 #endif // COIN_H
 
+>>>>>>> 7ffdc51f9656bfc6d7134e12694da43c49a7152b
