@@ -1,7 +1,7 @@
 Students:
 
 1. Henry van Toledo - s3849054
-2. 
+2. Artur Useinov - S3815168
 3. 
 
 
