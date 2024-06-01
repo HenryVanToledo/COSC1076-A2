@@ -1,102 +1,126 @@
-#include "LinkedList.h"
-<<<<<<< HEAD
-
-LinkedList::LinkedList() {
-   head = nullptr;
-
-   // TODO
-}
-
-LinkedList::~LinkedList() {
-    // TODO
-}
-=======
+#include <iostream>
 #include <iomanip>
+#include "LinkedList.h"
+#include "Node.h"
 
-LinkedList::LinkedList() : head(nullptr) {}
+LinkedList::LinkedList() : head(nullptr), count(0) {}
 
 LinkedList::~LinkedList() {
+    // delete all nodes and clear the list
     Node* current = head;
     while (current != nullptr) {
         Node* next = current->next;
+        delete current->data;
         delete current;
         current = next;
     }
 }
 
-void LinkedList::display() const {
-    Node* current = head;
-    cout << "Food Menu" << endl;
-    cout << "---------" << endl;
-    cout << "ID |Name |Length" << endl;
-    cout << "------------------------------------------------------------------" << endl;
-    while (current != nullptr) {
-        cout << current->id << "|" << current->name << "|$ " << fixed << setprecision(2) << current->price << endl;
-        current = current->next;
-    }
-}
+void LinkedList::insertSorted(const std::string& foodID, const std::string& foodName, const std::string& foodDesc, double price) {
+    // Create a new node
+    Node* newNode = new Node();
 
-void LinkedList::insertSorted(const string& id, const string& name, const string& desc, double price) {
-    Node* newNode = new Node(id, name, desc, price);
-    if (head == nullptr || head->name > name) {
+    // Create a new FoodItem
+    newNode->data = new FoodItem();
+
+    // Set the ID
+    newNode->data->id = foodID;
+
+    //set the name
+    newNode->data->name = foodName;
+
+    // set the food desc
+    newNode->data->description = foodDesc;
+
+    // set the price
+    newNode->data->price.dollars = static_cast<unsigned>(price);
+    newNode->data->price.cents = static_cast<unsigned>((price - newNode->data->price.dollars) * 100);
+
+    // assign next to nullptr
+    newNode->next = nullptr;
+
+    // Validate if list is empty or is the head
+    if (head == nullptr || head->data->name > foodName) {
         newNode->next = head;
         head = newNode;
+    // new node isnt the head
     } else {
         Node* current = head;
-        while (current->next != nullptr && current->next->name < name) {
+        // iterates through the list to find the correct position
+        while (current->next != nullptr && current->next->data->name < foodName) {
             current = current->next;
         }
         newNode->next = current->next;
         current->next = newNode;
     }
+    // incremetor
+    count++;
 }
 
-Node* LinkedList::find(const string& id) const {
+void LinkedList::display() const {
     Node* current = head;
+
+    //display menu
+    std::cout << "Food Menu" << std::endl;
+    std::cout << "---------" << std::endl;
+    std::cout << "ID   |Name                           |Price" << std::endl;
+    std::cout << "---------------------------------------------" << std::endl;
+    
+    // iterates through list to display menu data
     while (current != nullptr) {
-        if (current->id == id) {
-            return current;
-        }
+        std::cout << std::left << std::setw(5) << current->data->id << "|"
+                  << std::left << std::setw(30) << current->data->name << " |$"
+                  << current->data->price.dollars << '.'
+                  << std::setw(2) << std::setfill('0') << current->data->price.cents
+                  << std::setfill(' ') << std::endl;
         current = current->next;
     }
-    return nullptr;
+
+    std::cout << std::endl;
 }
 
-void LinkedList::remove(const string& id) {
-    if (head == nullptr) {
-        return;
+void LinkedList::clear() {
+    Node* current = head;
+    while (current != nullptr) {
+        Node* next = current->next;
+        delete current->data;
+        current = next;
     }
-    if (head->id == id) {
+    head = nullptr;
+    count = 0;
+}
+
+
+bool LinkedList::remove(const std::string& id) {
+    if (head == nullptr) {
+        return false;
+    }
+
+    if (head->data->id == id) {
         Node* temp = head;
         head = head->next;
+        delete temp->data;
         delete temp;
-        return;
+        count--;
+        return true;
     }
-    Node* current = head;
-    while (current->next != nullptr && current->next->id != id) {
-        current = current->next;
-    }
-    if (current->next != nullptr) {
-        Node* temp = current->next;
-        current->next = current->next->next;
-        delete temp;
-    }
-}
 
-int LinkedList::getNextID() const {
     Node* current = head;
-    int maxID = 0;
-    while (current != nullptr) {
-        int currentID = stoi(current->id.substr(1));
-        if (currentID > maxID) {
-            maxID = currentID;
+    while (current->next != nullptr) {
+        if (current->next->data->id == id) {
+            Node* temp = current->next;
+            current->next = current->next->next;
+            delete temp->data;
+            return true;
         }
         current = current->next;
     }
-    return maxID + 1;
-}git s
 
-Node* LinkedList::getHead() const {
-    return head;
+    return false;
 }
->>>>>>> 7ffdc51f9656bfc6d7134e12694da43c49a7152b
+
+
+
+
+
+

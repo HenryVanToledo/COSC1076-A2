@@ -1,8 +1,9 @@
 #include "Node.h"
 
-Node::Node(){
-    // TODO
-};
-Node::~Node(){
-    // TODO
-};
+// Constructor
+Node::Node() : data(nullptr), next(nullptr) {}
+
+// Deconstructor
+Node::~Node() {
+    delete data;
+}

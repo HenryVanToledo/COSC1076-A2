@@ -2,350 +2,562 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-<<<<<<< HEAD
-=======
 #include <iomanip>
->>>>>>> 7ffdc51f9656bfc6d7134e12694da43c49a7152b
+#include <cctype>
+#include <limits>
 #include "LinkedList.h"
-#include "Coin.h"
 
-using namespace std;
 
-void displayMenu() {
-    cout << "Main Menu:" << endl;
-    cout << "1. Display Meal Options" << endl;
-    cout << "2. Purchase Meal" << endl;
-    cout << "3. Save and Exit" << endl;
-    cout << "Administrator-Only Menu:" << endl;
-    cout << "4. Add Food" << endl;
-    cout << "5. Remove Food" << endl;
-    cout << "6. Display Balance" << endl;
-    cout << "7. Abort Program" << endl;
-<<<<<<< HEAD
-    cout << "Select your option (1-7): " << endl;
-=======
-    cout << "Select your option (1-7): ";
-}
+// validates input files
+void validateFoodData(const std::string& food_file, LinkedList& food_list);
+void validateCoinData(const std::string& coin_file);
 
-void purchaseMeal(LinkedList& foodList, Coin* coinArray) {
-    string foodID;
-    cout << "Purchase Meal" << endl;
-    cout << "-------------" << endl;
-    cout << "Please enter the ID of the food you wish to purchase: ";
-    cin >> foodID;
+// save data to files
+void saveData(const std::string& food_file, const std::string& coin_file, LinkedList& food_list);
 
-    Node* foodItem = foodList.find(foodID);
-    if (foodItem == nullptr) {
-        cerr << "Error: Food item not found." << endl;
-        return;
+// display menu prompt
+void displayMenu();
+
+// Second menu option
+bool menuOption(LinkedList& food_list, const std::string& food_file, const std::string& coin_file);
+
+// Option 2, purchaseMeal function
+void purchaseMeal(LinkedList& foodList);
+
+// Add Food Function
+void addFood(LinkedList& food_list);
+
+// Remove Food Function
+void removeFood(LinkedList& food_list);
+
+// Display Balance Function
+void displayBalance();
+
+// Terminate Program Function
+void terminateProgram(LinkedList& food_list, const std::string& food_file, const std::string& coin_file);
+
+// Function to generate the next food ID
+std::string generateFoodID(const LinkedList& food_list);
+
+
+int main(int argc, char **argv)
+{
+    // Check if command line has 3 args
+    if (argc != 3) {
+        std::cout << "Error: " << std::endl;
+        std::cout << "Please enter command line as: ./ftt <food_file> <coin_file>" << std::endl;
+        return EXIT_FAILURE;
     }
 
-    cout << "You have selected \"" << foodItem->name << " - " << foodItem->desc << "\". This will cost you $ " << fixed << setprecision(2) << foodItem->price << "." << endl;
-    cout << "Please hand over the money - type in the value of each note/coin in cents." << endl;
-    cout << "Please enter ctrl-D or enter on a new line to cancel this purchase." << endl;
+    // Seperate food and coin file from command line
+    std::string food_file = argv[1];
+    std::string coin_file = argv[2];
 
-    double amountDue = foodItem->price;
-    double amountPaid = 0.0;
-    int denomination;
-    while (amountPaid < amountDue) {
-        cout << "You still need to give us $" << fixed << setprecision(2) << amountDue - amountPaid << ": ";
-        if (!(cin >> denomination)) {
-            // Cancel purchase
-            cout << "Purchase cancelled. Refunding money." << endl;
-            return;
-        }
+    // creating food_list linked list
+    LinkedList food_list;
 
-        bool validDenom = false;
-        for (int i = 0; i < 10; ++i) {
-            if (coinArray[i].getDenomination() == denomination) {
-                validDenom = true;
-                coinArray[i].increaseQuantity();
-                amountPaid += denomination / 100.0;
-                break;
+    // Load data from files
+    validateFoodData(food_file, food_list);
+    validateCoinData(coin_file);
+
+    // Executes menu option on repeat until user exits or program saves
+    while(!menuOption(food_list, food_file, coin_file)) {
+
+    }
+
+    return EXIT_SUCCESS;
+}
+
+void validateFoodData(const std::string& food_file, LinkedList& food_list) {
+    // Validates .dat file
+    if (food_file.size() < 4 || food_file.substr(food_file.size() - 4) != ".dat") {
+        std::cerr << "Error: Invalid file type. Only .dat files are accepted." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    // Checks if file can open
+    std::ifstream file(food_file);
+    if (!file.is_open()) {
+        std::cerr << "Error: Could not open file " << food_file << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    // loops through entire file line by line
+    std::string line;
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        std::string foodID, foodName, foodDesc, priceStr;
+        // Validation to see if 3 | seperators are in each line
+        if (std::getline(ss, foodID, '|') &&
+            std::getline(ss, foodName, '|') &&
+            std::getline(ss, foodDesc, '|') &&
+            std::getline(ss, priceStr)) {
+
+            // Validation for ID formating
+            if (foodID.empty() || foodID[0] != 'F' || foodID.substr(1).find_first_not_of("0123456789") != std::string::npos) {
+                std::cerr << "Error: Invalid food ID format in file " << food_file << std::endl;
+                exit(EXIT_FAILURE);
             }
-        }
 
-        if (!validDenom) {
-            cerr << "Error: invalid denomination encountered." << endl;
+            // Validation for Price formatting
+            size_t dotPos = priceStr.find('.');
+            if (dotPos == std::string::npos || dotPos == 0 || dotPos == priceStr.size() - 1 || priceStr.find_first_not_of("0123456789.", dotPos + 1) != std::string::npos) {
+                std::cerr << "Error: Invalid price format in file " << food_file << std::endl;
+                exit(EXIT_FAILURE);
+            }
+
+            // inserts the values into the LinkedList containing food items
+            double price = std::stod(priceStr);
+            food_list.insertSorted(foodID, foodName, foodDesc, price);
+        // Error in formatting of lines in input food file
+        } else {
+            std::cerr << "Error: Invalid line format in file " << food_file << std::endl;
+            exit(EXIT_FAILURE);
+        }
+    }
+}
+
+void validateCoinData(const std::string& coin_file) {
+
+    // Check if the file extension is .dat
+    if (coin_file.size() < 4 || coin_file.substr(coin_file.size() - 4) != ".dat") {
+        std::cerr << "Error: Invalid file type. Only .dat files are accepted." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    // Validation to see if file opened
+    std::ifstream file(coin_file);
+    if (!file.is_open()) {
+        std::cerr << "Error: Could not open file " << coin_file << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    std::string line;
+
+    // loops to read all lines in input coin file
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        std::string denomStr, quantityStr;
+
+        // Check for seperation of ','
+        if (std::getline(ss, denomStr, ',') && std::getline(ss, quantityStr)) {
+            // Validate and convert denomination and quantity to integers
+            try {
+                int denomination = std::stoi(denomStr);
+                int quantity = std::stoi(quantityStr);
+
+                // check that denom and quant are non-negative
+                if (denomination < 0 || quantity < 0) {
+                    std::cerr << "Error: Invalid denomination or quantity in file " << coin_file << std::endl;
+                    exit(EXIT_FAILURE);
+                }
+                // Stores the denom in the register with associated quantity
+                Coin::registerCoins[denomination] = quantity;
+            } catch (const std::exception& e) {
+                std::cerr << "Error: Invalid line format in file " << coin_file << std::endl;
+                exit(EXIT_FAILURE);
+            }
+        // Error for line format in input coin file
+        } else {
+            std::cerr << "Error: Invalid line format in file " << coin_file << std::endl;
+            exit(EXIT_FAILURE);
         }
     }
 
-    // Calculate change
-    double change = amountPaid - amountDue;
-    cout << "Your change is $" << fixed << setprecision(2) << change << endl;
-    // Provide change to customer
-    // ...
 
-    // Update food item stock
-    // foodItem->quantity--; (Commented out since `quantity` is not part of the Node class)
+    //////////////////////////////
+    //////////// TESTING REGISTER
+    //////////////////////////////
 
-    cout << "Purchase successful. Returning to main menu." << endl;
+    // Print the loaded coin data (for debugging purposes)
+    // for (const auto& coin : Coin::registerCoins) {
+    //     std::cout << "Denomination: " << coin.first << " Quantity: " << coin.second << std::endl;
+    // }
 }
 
-void saveAndExit(const LinkedList& foodList, const Coin* coinArray, const string& foodsFile, const string& coinsFile) {
-    ofstream foods(foodsFile);
-    ofstream coins(coinsFile);
-    
-    if (!foods.is_open() || !coins.is_open()) {
-        cerr << "Error: Could not open files for saving." << endl;
+// opening menu
+void displayMenu() {
+    std::cout << "Main Menu:" << std::endl;
+    std::cout << "   1. Display Meal Options" << std::endl;
+    std::cout << "   2. Purchase Meal" << std::endl;
+    std::cout << "   3. Save and Exit" << std::endl;
+    std::cout << "Administrator-Only Menu:" << std::endl;
+    std::cout << "   4. Add Food" << std::endl;
+    std::cout << "   5. Remove Food" << std::endl;
+    std::cout << "   6. Display Balance" << std::endl;
+    std::cout << "   7. Abort Program" << std::endl;
+    std::cout << "Select your option (1-7) : ";
+}
+
+
+
+bool menuOption(LinkedList& food_list, const std::string& food_file, const std::string& coin_file) {
+
+    int option;
+
+    displayMenu();
+
+    //Handle control + d
+    if (std::cin.eof()) {
+        std::cout << "Exiting program." << std::endl;
+        exit(EXIT_SUCCESS);
+    }
+
+    // std::string line;
+    // std::getline(std::cin, line);
+
+    // if (std::cin.eof() || line.empty()) {
+    //     std::cout << "Purchase cancelled." << std::endl;
+    //     return;
+    // }
+
+    // Check for int
+    if (!(std::cin >> option)) {
+        // Clear input buffer and ignore any remaining characters
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::cout << "Invalid option. Please select a valid option (1-7): \n\n";
+        return menuOption(food_list, food_file, coin_file);
+    }
+
+    // Displays food menu option
+    if (option == 1) {
+        food_list.display();
+        return false;
+    }
+
+    // Purchase meal option
+    if (option == 2) {
+        purchaseMeal(food_list);
+
+        return false;
+    }
+
+    // Saves coin and food data to output files
+    if (option == 3) {
+        saveData(food_file, coin_file, food_list);
+        std::cout << "Data saved. Exiting program." << std::endl;
+        exit(EXIT_SUCCESS);
+    }
+
+    ////////////////////////
+    ////////// ADMIN OPTIONS
+    ////////////////////////
+
+
+    // Add food option to food_list
+    if (option == 4) {
+        addFood(food_list);
+        return false;
+    }
+
+    // 
+    if (option == 5) {
+        removeFood(food_list);
+        return false;
+    }
+
+    if (option == 6) {
+        displayBalance();
+        return false;
+    }
+
+    if (option == 7) {
+        terminateProgram(food_list, food_file, coin_file);
+    }
+
+    std::cout << "Invalid option. Please select a valid option (1-7)\n\n";
+    // If input is not a valid integer, clear error flags
+    std::cin.clear();
+    return menuOption(food_list, food_file, coin_file);
+}
+
+
+
+void purchaseMeal(LinkedList& foodList) {
+    std::cout << "\nPurchase Meal" << std::endl;
+    std::cout << "-------------" << std::endl;
+    std::cout << "Please enter the ID of the food you wish to purchase:" << std::endl;
+    std::string foodID;
+    std::cin >> foodID;
+
+    // Check if the food ID is valid
+    if (foodID.empty() || foodID[0] != 'F' || foodID.substr(1).find_first_not_of("0123456789") != std::string::npos) {
+        std::cerr << "Error: Invalid food ID format.\n" << std::endl;
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         return;
     }
 
-    // Save food data
+    // Find the food item in the linked list with the associated ID
     Node* current = foodList.getHead();
+    Node* foundNode = nullptr;
+
+    // loops through to match IDs
     while (current != nullptr) {
-        foods << current->id << "|" << current->name << "|" << current->desc << "|" << fixed << setprecision(2) << current->price << endl;
+        if (current->data->id == foodID) {
+            foundNode = current;
+        }
         current = current->next;
     }
 
-    // Save coin data
-    for (int i = 0; i < 10; ++i) {
-        coins << coinArray[i].getDenomination() << "," << coinArray[i].getQuantity() << endl;
-    }
+    if (foundNode != nullptr) {
 
-    foods.close();
-    coins.close();
-    cout << "Data saved successfully. Exiting program." << endl;
+        // calculates in cents for denom enum
+        int totalPriceInCents = foundNode->data->price.dollars * 100 + foundNode->data->price.cents;
+        CoinTracker coinTracker(totalPriceInCents);
+
+        // menu output
+        std::cout << "You have selected: \"" << foundNode->data->name << " - " << foundNode->data->description 
+        << "\". This will cost you $" << foundNode->data->price.dollars << '.' << std::setw(2) << std::setfill('0') << foundNode->data->price.cents 
+        << std::setfill(' ') << std::endl;
+
+        std::cout << "Please hand over the money - type in the value of each note/coin in cents." << std::endl;
+        std::cout << "Please enter ctrl-D or enter a new line to cancel this purchase" << std::endl;
+
+        // loops continuously until either payment is completed or user cancels
+        while (!coinTracker.isPaymentComplete()) {
+            std::cout << "You still need to give us $" << coinTracker.getAmountDue() / 100 << '.' << std::setw(2) << std::setfill('0') << coinTracker.getAmountDue() % 100 << ": ";
+            int payment;
+            std::cin >> payment;
+
+                ////////////////////////
+                ////// TO DO //////////
+                ///////////////////////
+                // Add validation for pressing enter that refunds to user
+
+            // Check for EOF (Ctrl-D)
+            if (std::cin.eof()) {
+                std::cerr << "Purchase canceled.\n" << std::endl;
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                return;
+            }
+
+            // initialisation 
+            Denomination denomination = Denomination::INVALID; 
+            bool validDenomination = false;
+
+            // check is payment is a valid denom
+            for (const auto& denominationValue : Coin::denominationValues) {
+                if (payment == denominationValue.second) {
+                    validDenomination = true;
+                    denomination = denominationValue.first;
+                    break; // Exit the loop once a valid denomination is found
+                }
+            }
+            // If denom is valid, add it as a payment
+            if (validDenomination) {
+                coinTracker.addPayment(denomination, 1);
+                Coin::registerCoins[Coin::getDenominationValue(denomination)]++;
+                std::cout << "Amount Paid: $" << coinTracker.getTotalPaid() / 100 << '.' << std::setw(2) << std::setfill('0') << coinTracker.getTotalPaid() % 100 << std::endl;
+            // Error if denomination not in enumerator
+            } else {
+                std::cerr << "Error: Invalid denomination. Please enter a valid denomination." << std::endl;
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+        }
+
+        if (coinTracker.isPaymentComplete()) {
+            // Validation for if change available
+            if (coinTracker.canProvideChange()) {
+                std::cout << "Payment complete. Enjoy your meal!" << std::endl;
+                coinTracker.getChange();
+                // Below line for TESTING
+                // Coin::printRegister();
+            // Error if change doesn't have change
+            } else {
+                std::cerr << "Error: Not enough change in the register. Purchase canceled.\n" << std::endl;
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                return;
+            }
+        }
+    // Error if invalid ID input
+    } else {
+        std::cerr << "Error: Food item with ID " << foodID << " not found.\n" << std::endl;
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
 }
 
-void addFoodItem(LinkedList& foodList) {
-    string name, desc, priceStr;
-    cout << "Enter the item name: ";
-    cin.ignore();  // Ignore any remaining input in the buffer
-    getline(cin, name);
-    cout << "Enter the item description: ";
-    getline(cin, desc);
-    cout << "Enter the price for this item (e.g., 8.50): ";
-    getline(cin, priceStr);
 
-    // Validate price
-    size_t pos = priceStr.find('.');
-    if (pos == string::npos || pos == 0 || pos == priceStr.length() - 1) {
-        cerr << "Error: Invalid price format." << endl;
-        return;
+void saveData(const std::string& food_file, const std::string& coin_file, LinkedList& food_list) {
+    std::ofstream foodFile(food_file);
+    // opens foodFile to input food items
+    if (foodFile.is_open()) {
+        Node* current = food_list.getHead();
+        while (current != nullptr) {
+            foodFile << current->data->id << "|" << current->data->name << "|" << current->data->description 
+                     << "|" << current->data->price.dollars << '.' << std::setw(2) << std::setfill('0') << current->data->price.cents 
+                     << std::endl;
+            current = current->next;
+        }
+        foodFile.close();
+    // Error if foodFile cant be opened
+    } else {
+        std::cerr << "Error: Could not open file " << food_file << " for writing." << std::endl;
     }
 
-    double price;
-    try {
-        price = stod(priceStr);
-    } catch (...) {
-        cerr << "Error: Invalid price format." << endl;
-        return;
+    // Saving updated info to coinFile
+    std::ofstream coinFile(coin_file);
+    if (coinFile.is_open()) {
+        for (const auto& coin : Coin::registerCoins) {
+            coinFile << coin.first << "," << coin.second << std::endl;
+        }
+        coinFile.close();
+        
+        // Clear register data
+        Coin::registerCoins.clear();
+    } else {
+        std::cerr << "Error: Could not open file " << coin_file << " for writing." << std::endl;
     }
 
-    // Generate new ID
-    string id = "F" + to_string(foodList.getNextID());
-
-    foodList.insertSorted(id, name, desc, price);
-    cout << "This item \"" << name << " - " << desc << "\" has now been added to the food menu." << endl;
+    // LinkedList deconstructor
+    food_list.clear();
 }
 
-bool validateFoodLine(const string& line) {
-    stringstream ss(line);
-    string id, name, desc, priceStr;
-    getline(ss, id, '|');
-    getline(ss, name, '|');
-    getline(ss, desc, '|');
-    getline(ss, priceStr);
-    if (id.empty() || name.empty() || desc.empty() || priceStr.empty()) {
-        return false;
+
+void addFood(LinkedList& food_list) {
+
+    // ID generation
+    std::string foodID = generateFoodID(food_list);
+
+    std::cout << "FOOD ID:" << foodID << std::endl;
+
+    std::cout << "The new meal item will have the Item ID of " << foodID << std::endl;
+    std::cout << "-------------" << std::endl;
+
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+    // Food name
+    std::cout << "Enter the item name: ";
+    std::string foodName;
+    std::getline(std::cin, foodName);
+
+    // Food desc
+    std::cout << "Enter the item description: ";
+    std::string foodDesc;
+    std::getline(std::cin, foodDesc);
+
+    int foodPriceCents = 0;
+    bool validPrice = false;
+
+    // loop to get a valid price in cents, minimum 100 cents
+    while (!validPrice) {
+        std::cout << "Enter the price for this item (in cents): ";
+        if (!(std::cin >> foodPriceCents) || foodPriceCents < 100) {
+            std::cerr << "Error: Invalid price. Please enter a valid price of at least 100 cents." << std::endl;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        } else {
+            validPrice = true;
+        }
     }
-    size_t pos = priceStr.find('.');
-    if (pos == string::npos || pos == 0 || pos == priceStr.length() - 1) {
-        return false;
-    }
-    try {
-        stod(priceStr);
-    } catch (...) {
-        return false;
-    }
-    return true;
+
+    // Converts foodPrice to dollar amount
+    double foodPrice;
+    foodPrice = foodPriceCents / 100.0;
+
+    // adds to the sorted list
+    food_list.insertSorted(foodID, foodName, foodDesc, foodPrice);
+
+    std::cout << "This item \"" << foodName << " - " << foodDesc << "\" has now been added to the food menu" << std::endl;
 }
 
-bool validateCoinLine(const string& line) {
-    stringstream ss(line);
-    int denom, quantity;
-    char comma;
-    ss >> denom >> comma >> quantity;
-    if (!ss || comma != ',' || denom <= 0 || quantity < 0) {
-        return false;
+
+
+std::string generateFoodID(const LinkedList& food_list) {
+    
+    std::string highestID = "F0000";
+
+    // iterates through list to find highest id in food_list
+    Node* current = food_list.getHead();
+    while (current != nullptr) {
+        highestID = std::max(highestID, current->data->id);
+        current = current->next;
     }
-    return true;
+
+    // once highest ID found, increment by 1
+    int idNum = std::stoi(highestID.substr(1)) + 1;
+    std::string nextID = "F" + std::to_string(idNum);
+
+    // Adds correct formatting to ID
+    std::string formattedID = "F" + std::string(4 - std::to_string(idNum).length(), '0') + std::to_string(idNum);
+
+    return formattedID;
 }
 
-void abortProgram() {
-    cout << "Program aborted. All data will be lost." << endl;
-    exit(0);
+
+void removeFood(LinkedList& food_list) {
+    std::cout << "Enter the food ID of the food to remove from the menu: ";
+    std::string foodID;
+    std::cin >> foodID;
+
+    // Retrieve the food item details before attempting to remove it
+    std::string removedFoodName;
+    std::string removedFoodDesc;
+
+    // Find the food item in the linked list with the associated ID
+    Node* current = food_list.getHead();
+    Node* prev = nullptr;
+    while (current != nullptr) {
+        if (current->data->id == foodID) {
+            // Found the food item, retrieve its details
+            removedFoodName = current->data->name;
+            removedFoodDesc = current->data->description;
+            
+            // Remove the food item from the list
+            if (prev == nullptr) {
+                // If the item to be removed is the head
+                food_list.remove(foodID);
+            } else {
+                prev->next = current->next;
+                delete current->data;
+            }
+            
+            // Output statement for successful removal
+            std::cout << "\'" << foodID << " - " << removedFoodName << " - " << removedFoodDesc << "\' has been removed from the system." << std::endl;
+            
+            return;
+        }
+        prev = current;
+        current = current->next;
+    }
+
+    // If the food item with the specified ID was not found
+    std::cerr << "Error: No food item found with ID " << foodID << std::endl;
 }
 
-void displayBalance(const Coin* coinArray) {
-    cout << "Balance Summary" << endl;
-    cout << "-------------" << endl;
-    cout << "Denom | Quantity | Value" << endl;
-    cout << "---------------------------" << endl;
+void displayBalance() {
+    std::cout << "\nBalance Summary" << std::endl;
+    std::cout << "-------------" << std::endl;
+    std::cout << "Denom | Quantity | Value" << std::endl;
+    std::cout << "------------------------------" << std::endl;
+    
+    double totalValue = 0;
 
-    double totalValue = 0.0;
-    for (int i = 0; i < 10; ++i) {
-        int denom = coinArray[i].getDenomination();
-        int quantity = coinArray[i].getQuantity();
-        double value = denom * quantity / 100.0;
-        cout << denom << " | " << quantity << " |$ " << fixed << setprecision(2) << value << endl;
+    // Iterate through the registerCoins map
+    for (const auto& coin : Coin::registerCoins) {
+        int denomination = coin.first;
+        int quantity = coin.second;
+        double value = denomination / 100 * quantity;
         totalValue += value;
+
+        // formatting for coins table
+        std::cout << std::setw(5) << std::left << denomination << " | " << std::setw(8) << std::left << quantity << " | $" << std::setw(8) << std::right << std::fixed << std::setprecision(2) << value << std::endl;
     }
 
-    cout << "---------------------------" << endl;
-    cout << "$ " << fixed << setprecision(2) << totalValue << endl;
+    std::cout << "------------------------------" << std::endl;
+    std::cout << "                   $ " << std::fixed << std::setprecision(2) << totalValue << std::endl;
+    
 }
 
-void removeFoodItem(LinkedList& foodList) {
-    string foodID;
-    cout << "Enter the food id of the food to remove from the menu: ";
-    cin >> foodID;
+// Function to free memory then close program without saving
+void terminateProgram(LinkedList& food_list, const std::string& food_file, const std::string& coin_file) {
+    // Free memory
+    food_list.clear();
 
-    Node* foodItem = foodList.find(foodID);
-    if (foodItem == nullptr) {
-        cerr << "Error: Food item not found." << endl;
-        return;
-    }
-
-    foodList.remove(foodID);
-    cout << "\"" << foodID << " - " << foodItem->name << " - " << foodItem->desc << "\" has been removed from the system." << endl;
->>>>>>> 7ffdc51f9656bfc6d7134e12694da43c49a7152b
-}
-
-int main(int argc, char* argv[]) {
-    if (argc != 3) {
-        cerr << "Usage: " << argv[0] << " <foodsfile> <coinsfile>" << endl;
-        return 1;
-    }
-
-    string foodsFile = argv[1];
-    string coinsFile = argv[2];
-
-    // Load data from files
-    ifstream foods(foodsFile);
-    ifstream coins(coinsFile);
-    if (!foods.is_open() || !coins.is_open()) {
-        cerr << "Error: Could not open files." << endl;
-        return 1;
-    }
-
-    LinkedList foodList;
-    Coin coinArray[10]; // Assuming we have a fixed size for simplicity
-
-    string line;
-    // Load food data
-    while (getline(foods, line)) {
-<<<<<<< HEAD
-=======
-        if (!validateFoodLine(line)) {
-            cerr << "Error: Invalid food data format." << endl;
-            return 1;
-        }
->>>>>>> 7ffdc51f9656bfc6d7134e12694da43c49a7152b
-        stringstream ss(line);
-        string id, name, desc, priceStr;
-        getline(ss, id, '|');
-        getline(ss, name, '|');
-        getline(ss, desc, '|');
-        getline(ss, priceStr);
-<<<<<<< HEAD
-        // Assuming price is valid here for simplicity, but should validate
-=======
->>>>>>> 7ffdc51f9656bfc6d7134e12694da43c49a7152b
-        double price = stod(priceStr);
-        foodList.insertSorted(id, name, desc, price);
-    }
-
-    // Load coin data
-    int coinIndex = 0;
-    while (getline(coins, line)) {
-<<<<<<< HEAD
-        stringstream ss(line);
-        int denom, quantity;
-        ss >> denom;
-        ss.ignore(); // ignore the comma
-        ss >> quantity;
-        coinArray[coinIndex++] = Coin(denom, quantity);
-    }
-
-    // Display menu and handle user input
-    while (true) {
-        displayMenu();
-        int choice;
-        cin >> choice;
-        switch (choice) {
-            case 1:
-                foodList.display();
-                break;
-            case 2:
-                // Implement purchase meal
-                break;
-            case 3:
-                // Save data and exit
-                break;
-            case 4:
-                // Add food
-                break;
-            case 5:
-                // Remove food
-                break;
-            case 6:
-                // Display balance
-                break;
-            case 7:
-                // Abort program
-                return 0;
-            default:
-                cerr << "Invalid option. Please try again." << endl;
-        }
-    }
-
-    return 0;
-=======
-        if (!validateCoinLine(line)) {
-cerr << "Error: Invalid coin data format." << endl;
-return 1;
-}
-stringstream ss(line);
-int denom, quantity;
-char comma;
-ss >> denom >> comma >> quantity;
-coinArray[coinIndex++] = Coin(denom, quantity);
-}
-
-// Display menu and handle user input
-while (true) {
-    displayMenu();
-    int choice;
-    cin >> choice;
-    switch (choice) {
-        case 1:
-            foodList.display();
-            break;
-        case 2:
-            purchaseMeal(foodList, coinArray);
-            break;
-        case 3:
-            saveAndExit(foodList, coinArray, foodsFile, coinsFile);
-            return 0;
-        case 4:
-            addFoodItem(foodList);
-            break;
-        case 5:
-            removeFoodItem(foodList);
-            break;
-        case 6:
-            displayBalance(coinArray);
-            break;
-        case 7:
-            abortProgram();
-            break;
-        default:
-            cerr << "Invalid option. Please try again." << endl;
-    }
-}
-
-return 0;
->>>>>>> 7ffdc51f9656bfc6d7134e12694da43c49a7152b
+    std::cout << "Exiting program." << std::endl;
+    exit(EXIT_SUCCESS);
 }
