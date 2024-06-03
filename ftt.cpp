@@ -218,7 +218,7 @@ bool menuOption(LinkedList& food_list, const std::string& food_file, const std::
     }
 
     std::cin >> input;
-
+ // Check for "help" command
     if (input == "help") {
         displayHelp();
         // Clear input buffer to avoid the infinite loop
@@ -233,7 +233,10 @@ bool menuOption(LinkedList& food_list, const std::string& food_file, const std::
 
     // Check for valid integer input
     if (ss.fail() || !ss.eof()) {
-        std::cout << "Invalid option. Please select a valid option (1-7):\n\n";
+        std::cout << "Invalid option. Please select a valid option (1-7): or type 'help' \n\n";
+        // Clear input buffer to avoid the infinite loop
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         return menuOption(food_list, food_file, coin_file);
     }
 
@@ -261,22 +264,23 @@ bool menuOption(LinkedList& food_list, const std::string& food_file, const std::
         addFood(food_list);
         return false;
     }
-
+// removes food option
     if (option == 5) {
         removeFood(food_list);
         return false;
     }
-
+// function to display balance
     if (option == 6) {
         displayBalance();
         return false;
     }
-
+// terminate program control + d
     if (option == 7) {
         terminateProgram(food_list, food_file, coin_file);
     }
 
-    std::cout << "Invalid option. Please select a valid option (1-7)\n\n";
+ // Invalid option handling
+    std::cout << "Invalid option. Please select a valid option (1-7) or type: 'help'\n\n";
         // If input is not a valid integer, clear error flags
     std::cin.clear();
     return menuOption(food_list, food_file, coin_file);
@@ -294,7 +298,7 @@ void purchaseMeal(LinkedList& foodList) {
 
     // Check if the food ID is valid
     if (foodID.empty() || foodID[0] != 'F' || foodID.substr(1).find_first_not_of("0123456789") != std::string::npos) {
-        std::cerr << "Error: Invalid food ID format.\n" << std::endl;
+        std::cerr <<"Error: Invalid food ID format. A valid ID starts with 'F' followed by numbers.\n" << std::endl; // more clarity added
         std::cin.clear();
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         return;
@@ -332,10 +336,6 @@ void purchaseMeal(LinkedList& foodList) {
             int payment;
             std::cin >> payment;
 
-                ////////////////////////
-                ////// TO DO //////////
-                ///////////////////////
-                // Add validation for pressing enter that refunds to user
 
             // Check for EOF (Ctrl-D)
             if (std::cin.eof()) {
@@ -364,7 +364,7 @@ void purchaseMeal(LinkedList& foodList) {
                 std::cout << "Amount Paid: $" << coinTracker.getTotalPaid() / 100 << '.' << std::setw(2) << std::setfill('0') << coinTracker.getTotalPaid() % 100 << std::endl;
             // Error if denomination not in enumerator
             } else {
-                std::cerr << "Error: Invalid denomination. Please enter a valid denomination." << std::endl;
+                std::cerr << "Error: Invalid denomination. Please enter a valid denomination (e.g., 5, 10, 20, 50, 100, 200).\n" << std::endl;
                 std::cin.clear();
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             }
