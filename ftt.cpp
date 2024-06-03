@@ -185,37 +185,55 @@ void displayMenu() {
     std::cout << "   5. Remove Food" << std::endl;
     std::cout << "   6. Display Balance" << std::endl;
     std::cout << "   7. Abort Program" << std::endl;
-    std::cout << "Select your option (1-7) : ";
+    std::cout << "\nType: 'help' to display Help Menu:\n";
+    std::cout << "\nSelect your option (1-7) : ";
+}
+
+// function to display help text (minor improvement)
+void displayHelp() {
+    std::cout << "\nHelp Menu:\n";
+    std::cout << "1. Display Meal Options - Shows the list of available meals.\n";
+    std::cout << "2. Purchase Meal - Allows you to purchase a meal by entering its ID.\n";
+    std::cout << "3. Save and Exit - Saves current data and exits the program.\n";
+    std::cout << "4. Add Food - (Admin) Adds a new food item to the list.\n";
+    std::cout << "5. Remove Food - (Admin) Removes a food item from the list.\n";
+    std::cout << "6. Display Balance - (Admin) Displays the balance summary.\n";
+    std::cout << "7. Abort Program - (Admin) Terminates the program without saving.\n";
+    std::cout << "Type 'help' at any prompt to see this help menu again.\n\n";
 }
 
 
 
-bool menuOption(LinkedList& food_list, const std::string& food_file, const std::string& coin_file) {
 
+bool menuOption(LinkedList& food_list, const std::string& food_file, const std::string& coin_file) {
     int option;
+    std::string input;
 
     displayMenu();
 
-    //Handle control + d
+    // Handle control + d
     if (std::cin.eof()) {
         std::cout << "Exiting program." << std::endl;
         exit(EXIT_SUCCESS);
     }
 
-    // std::string line;
-    // std::getline(std::cin, line);
+    std::cin >> input;
 
-    // if (std::cin.eof() || line.empty()) {
-    //     std::cout << "Purchase cancelled." << std::endl;
-    //     return;
-    // }
-
-    // Check for int
-    if (!(std::cin >> option)) {
-        // Clear input buffer and ignore any remaining characters
+    if (input == "help") {
+        displayHelp();
+        // Clear input buffer to avoid the infinite loop
         std::cin.clear();
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cout << "Invalid option. Please select a valid option (1-7): \n\n";
+        return false; // Returning false to re-display the menu
+    }
+
+
+    std::stringstream ss(input);
+    ss >> option;
+
+    // Check for valid integer input
+    if (ss.fail() || !ss.eof()) {
+        std::cout << "Invalid option. Please select a valid option (1-7):\n\n";
         return menuOption(food_list, food_file, coin_file);
     }
 
@@ -228,7 +246,6 @@ bool menuOption(LinkedList& food_list, const std::string& food_file, const std::
     // Purchase meal option
     if (option == 2) {
         purchaseMeal(food_list);
-
         return false;
     }
 
@@ -239,18 +256,12 @@ bool menuOption(LinkedList& food_list, const std::string& food_file, const std::
         exit(EXIT_SUCCESS);
     }
 
-    ////////////////////////
-    ////////// ADMIN OPTIONS
-    ////////////////////////
-
-
     // Add food option to food_list
     if (option == 4) {
         addFood(food_list);
         return false;
     }
 
-    // 
     if (option == 5) {
         removeFood(food_list);
         return false;
@@ -266,10 +277,11 @@ bool menuOption(LinkedList& food_list, const std::string& food_file, const std::
     }
 
     std::cout << "Invalid option. Please select a valid option (1-7)\n\n";
-    // If input is not a valid integer, clear error flags
+        // If input is not a valid integer, clear error flags
     std::cin.clear();
     return menuOption(food_list, food_file, coin_file);
 }
+
 
 
 
