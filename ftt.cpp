@@ -6,6 +6,19 @@
 #include <cctype>
 #include <limits>
 #include "LinkedList.h"
+#include "Coin.h" 
+
+
+
+// ANSI color codes for terminal text
+const std::string RESET = "\033[0m";
+const std::string RED = "\033[31m";
+const std::string GREEN = "\033[32m";
+const std::string YELLOW = "\033[33m";
+const std::string BLUE = "\033[34m";
+const std::string MAGENTA = "\033[35m";
+const std::string CYAN = "\033[36m";
+const std::string WHITE = "\033[37m";
 
 
 // validates input files
@@ -298,7 +311,7 @@ void purchaseMeal(LinkedList& foodList) {
 
     // Check if the food ID is valid
     if (foodID.empty() || foodID[0] != 'F' || foodID.substr(1).find_first_not_of("0123456789") != std::string::npos) {
-        std::cerr <<"Error: Invalid food ID format. A valid ID starts with 'F' followed by numbers.\n" << std::endl; // more clarity added
+        std::cerr << "Error: Invalid food ID format. A valid ID starts with 'F' followed by numbers. e.g: F0001\n" << std::endl;
         std::cin.clear();
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         return;
@@ -308,7 +321,7 @@ void purchaseMeal(LinkedList& foodList) {
     Node* current = foodList.getHead();
     Node* foundNode = nullptr;
 
-    // loops through to match IDs
+    // Loops through to match IDs
     while (current != nullptr) {
         if (current->data->id == foodID) {
             foundNode = current;
@@ -318,24 +331,23 @@ void purchaseMeal(LinkedList& foodList) {
 
     if (foundNode != nullptr) {
 
-        // calculates in cents for denom enum
+        // Calculates in cents for denom enum
         int totalPriceInCents = foundNode->data->price.dollars * 100 + foundNode->data->price.cents;
-        CoinTracker coinTracker(totalPriceInCents);
+        int amountPaidInCents = 0;
 
-        // menu output
+        // Menu output
         std::cout << "You have selected: \"" << foundNode->data->name << " - " << foundNode->data->description 
-        << "\". This will cost you $" << foundNode->data->price.dollars << '.' << std::setw(2) << std::setfill('0') << foundNode->data->price.cents 
-        << std::setfill(' ') << std::endl;
+        << "\". This will cost you " << GREEN << "$" << foundNode->data->price.dollars << '.' << std::setw(2) << std::setfill('0') << foundNode->data->price.cents 
+        << RESET << std::setfill(' ') << std::endl;
 
         std::cout << "Please hand over the money - type in the value of each note/coin in cents." << std::endl;
         std::cout << "Please enter ctrl-D or enter a new line to cancel this purchase" << std::endl;
 
-        // loops continuously until either payment is completed or user cancels
-        while (!coinTracker.isPaymentComplete()) {
-            std::cout << "You still need to give us $" << coinTracker.getAmountDue() / 100 << '.' << std::setw(2) << std::setfill('0') << coinTracker.getAmountDue() % 100 << ": ";
+        // Loops continuously until either payment is completed or user cancels
+        while (amountPaidInCents < totalPriceInCents) {
+            std::cout << "You still need to give us " << GREEN << "$" << (totalPriceInCents - amountPaidInCents) / 100 << '.' << std::setw(2) << std::setfill('0') << (totalPriceInCents - amountPaidInCents) % 100 << RESET << ": ";
             int payment;
             std::cin >> payment;
-
 
             // Check for EOF (Ctrl-D)
             if (std::cin.eof()) {
@@ -345,24 +357,22 @@ void purchaseMeal(LinkedList& foodList) {
                 return;
             }
 
-            // initialisation 
-            Denomination denomination = Denomination::INVALID; 
+            // Initialization
+          
             bool validDenomination = false;
 
-            // check is payment is a valid denom
+            // Check if payment is a valid denomination
             for (const auto& denominationValue : Coin::denominationValues) {
                 if (payment == denominationValue.second) {
                     validDenomination = true;
-                    denomination = denominationValue.first;
-                    break; // Exit the loop once a valid denomination is found
+                  
                 }
             }
-            // If denom is valid, add it as a payment
+            // If denomination is valid, add it as a payment
             if (validDenomination) {
-                coinTracker.addPayment(denomination, 1);
-                Coin::registerCoins[Coin::getDenominationValue(denomination)]++;
-                std::cout << "Amount Paid: $" << coinTracker.getTotalPaid() / 100 << '.' << std::setw(2) << std::setfill('0') << coinTracker.getTotalPaid() % 100 << std::endl;
-            // Error if denomination not in enumerator
+                amountPaidInCents += payment;
+                Coin::registerCoins[payment]++;
+                std::cout << "Amount Paid: " << GREEN << "$" << amountPaidInCents / 100 << '.' << std::setw(2) << std::setfill('0') << amountPaidInCents % 100 << RESET << std::endl;
             } else {
                 std::cerr << "Error: Invalid denomination. Please enter a valid denomination (e.g., 5, 10, 20, 50, 100, 200).\n" << std::endl;
                 std::cin.clear();
@@ -370,22 +380,21 @@ void purchaseMeal(LinkedList& foodList) {
             }
         }
 
-        if (coinTracker.isPaymentComplete()) {
-            // Validation for if change available
-            if (coinTracker.canProvideChange()) {
+        if (amountPaidInCents >= totalPriceInCents) {
+            // Calculate change
+            std::map<Denomination, int> change = Coin::getChange(totalPriceInCents, amountPaidInCents);
+
+            if (!change.empty()) {
                 std::cout << "Payment complete. Enjoy your meal!" << std::endl;
-                coinTracker.getChange();
-                // Below line for TESTING
-                // Coin::printRegister();
-            // Error if change doesn't have change
+                std::cout << Coin::formatChange(change) << std::endl;
             } else {
                 std::cerr << "Error: Not enough change in the register. Purchase canceled.\n" << std::endl;
                 std::cin.clear();
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                 return;
             }
+
         }
-    // Error if invalid ID input
     } else {
         std::cerr << "Error: Food item with ID " << foodID << " not found.\n" << std::endl;
         std::cin.clear();

@@ -58,26 +58,25 @@ void LinkedList::insertSorted(const std::string& foodID, const std::string& food
 }
 
 void LinkedList::display() const {
-    Node* current = head;
 
-    //display menu
+    Node* current = head;
+       //display menu
     std::cout << "Food Menu" << std::endl;
     std::cout << "---------" << std::endl;
     std::cout << "ID   |Name                           |Price" << std::endl;
     std::cout << "---------------------------------------------" << std::endl;
-    
-    // iterates through list to display menu data
+        // iterates through list to display menu data
     while (current != nullptr) {
-        std::cout << std::left << std::setw(5) << current->data->id << "|"
-                  << std::left << std::setw(30) << current->data->name << " |$"
-                  << current->data->price.dollars << '.'
-                  << std::setw(2) << std::setfill('0') << current->data->price.cents
+        std::cout << current->data->id << "|" 
+                  << std::setw(30) << std::left << current->data->name.substr(0, 29) << "|" // Adjusted to show only 29 characters of the name
+                  << "$" << std::setw(2) << current->data->price.dollars << "." 
+                  << std::setw(2) << std::setfill('0') << current->data->price.cents 
                   << std::setfill(' ') << std::endl;
         current = current->next;
     }
-
-    std::cout << std::endl;
 }
+
+
 
 void LinkedList::clear() {
     Node* current = head;
