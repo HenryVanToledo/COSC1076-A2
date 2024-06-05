@@ -12,10 +12,10 @@
 #define MAGENTA "\033[35m"
 
 
-LinkedList::LinkedList() : head(nullptr), count(0) {}
+LinkedList::LinkedList() : head(nullptr), tail(nullptr), count(0) {}
 
 LinkedList::~LinkedList() {
-    // delete all nodes and clear the list
+    // Delete all nodes and clear the list
     Node* current = head;
     while (current != nullptr) {
         Node* next = current->next;
@@ -28,60 +28,52 @@ LinkedList::~LinkedList() {
 void LinkedList::insertSorted(const std::string& foodID, const std::string& foodName, const std::string& foodDesc, double price) {
     // Create a new node
     Node* newNode = new Node();
-
-    // Create a new FoodItem
     newNode->data = new FoodItem();
-
-    // Set the ID
     newNode->data->id = foodID;
-
-    //set the name
     newNode->data->name = foodName;
-
-    // set the food desc
     newNode->data->description = foodDesc;
-
-    // set the price
     newNode->data->price.dollars = static_cast<unsigned>(price);
     newNode->data->price.cents = static_cast<unsigned>((price - newNode->data->price.dollars) * 100);
 
-    // assign next to nullptr
     newNode->next = nullptr;
 
-    // Validate if list is empty or is the head
-    if (head == nullptr || head->data->name > foodName) {
-        newNode->next = head;
+    // Check if list is empty
+    if (head == nullptr) {
         head = newNode;
-    // new node isnt the head
+        tail = newNode;
+        newNode->prev = nullptr;
+    } else if (head->data->name > foodName) {
+        newNode->next = head;
+        head->prev = newNode;
+        head = newNode;
+        newNode->prev = nullptr;
     } else {
         Node* current = head;
-        // iterates through the list to find the correct position
         while (current->next != nullptr && current->next->data->name < foodName) {
             current = current->next;
         }
         newNode->next = current->next;
+        if (current->next != nullptr)
+            current->next->prev = newNode;
         current->next = newNode;
+        newNode->prev = current;
     }
-    // incremetor
     count++;
 }
 
 void LinkedList::display() const {
     Node* current = head;
 
-    //display menu
     std::cout << "Food Menu" << std::endl;
     std::cout << "---------" << std::endl;
-    std::cout << BLUE <<"ID"<<RESET<<"   |"<<YELLOW<<"Name"<<RESET<<"                           |"<<GREEN<<"Price" << RESET<< std::endl;
+    std::cout << "ID     | Name                           | Price" << std::endl;
     std::cout << "---------------------------------------------" << std::endl;
-    
-    // iterates through list to display menu data
+
     while (current != nullptr) {
-        std::cout << std::left << std::setw(5) << BLUE << current->data->id << RESET << "|" << YELLOW
-                  << std::left << std::setw(30) << std::setfill(' ') << current->data->name << RESET << " |" << GREEN <<"$"
-                  << current->data->price.dollars << '.'
-                  << std::setw(2) << std::setfill('0') << current->data->price.cents
-                  << std::setfill(' ') << RESET << std::endl;
+        std::cout << std::left << std::setw(5) << current->data->id << " | "
+                  << std::left << std::setw(30) << std::setfill(' ') << current->data->name << " | $"
+                  << current->data->price.dollars << '.' << std::setw(2) << std::setfill('0') << current->data->price.cents
+                  << std::setfill(' ') << std::endl;
         current = current->next;
     }
 
@@ -93,37 +85,39 @@ void LinkedList::clear() {
     while (current != nullptr) {
         Node* next = current->next;
         delete current->data;
+        delete current;
         current = next;
     }
     head = nullptr;
+    tail = nullptr;
     count = 0;
 }
 
-
 bool LinkedList::remove(const std::string& id) {
-    // Check to see list isnt empty
     if (head == nullptr) {
         return false;
     }
 
-    // Removes the head if it matches the id
     if (head->data->id == id) {
         Node* temp = head;
         head = head->next;
+        if (head != nullptr)
+            head->prev = nullptr;
         delete temp->data;
+        delete temp;
         count--;
         return true;
     }
 
-    // If the node to remove is not the head
     Node* current = head;
-
-    // Traverse from the tail to the head
-    while (current->next != nullptr && current->next->next != nullptr) {
-        if (current->next->next->data->id == id) {
-            Node* temp = current->next->next;
-            current->next->next = current->next->next->next;
+    while (current->next != nullptr) {
+        if (current->next->data->id == id) {
+            Node* temp = current->next;
+            current->next = current->next->next;
+            if (current->next != nullptr)
+                current->next->prev = current;
             delete temp->data;
+            delete temp;
             count--;
             return true;
         }
