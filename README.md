@@ -17,7 +17,7 @@ Minor Enhancements:
 #Henry:
 - Command line colour output
 - Specific error/invalid messages to user
-- 
+- Display Balance/ Display Food Menu bug fixes
 
 Major Enhancements:
 
