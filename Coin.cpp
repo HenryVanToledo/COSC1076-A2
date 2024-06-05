@@ -5,11 +5,13 @@
 #include <iomanip>
 #include <sstream>
 
+
+
 // maps through denom to correspond to value
 const std::map<Denomination, int> Coin::denominationValues = {
     {FIVE_CENTS, 5}, {TEN_CENTS, 10}, {TWENTY_CENTS, 20}, {FIFTY_CENTS, 50},
     {ONE_DOLLAR, 100}, {TWO_DOLLARS, 200}, {FIVE_DOLLARS, 500}, {TEN_DOLLARS, 1000},
-    {TWENTY_DOLLARS, 2000}, {FIFTY_DOLLARS, 5000}, {HUNDRED_DOLLARS, 10000}
+    {TWENTY_DOLLARS, 2000}, {FIFTY_DOLLARS, 5000}
 };
 // map to store the coins
 std::map<int, unsigned> Coin::registerCoins;
@@ -48,9 +50,9 @@ void Coin::displayBalance() {
 
     // Iterate through denominations and quantities
     for (const auto& coin : Coin::registerCoins) {
-        Denomination denomination = static_cast<Denomination>(coin.first); // Convert int to Denomination enum
+        Denomination denomination = static_cast<Denomination>(coin.first); 
         int quantity = coin.second;
-        double value = Coin::getDenominationValue(denomination) * quantity / 100.0; // Calculate total value of each denomination
+        double value = Coin::getDenominationValue(denomination) * quantity / 100.0; 
         totalValue += value;
 
         // Display denomination, quantity, and value with correct formatting
@@ -170,6 +172,6 @@ void CoinTracker::getChange() const {
         std::cerr << "Error: Not enough change in the register." << std::endl;
     // Print statement for change
     } else {
-        std::cout << "Your change is: " << changeStream.str() << "\n" << std::endl;
+        std::cout << "Your change is: " << GREEN << changeStream.str() << "\n" << RESET << std::endl;
     }
 }
