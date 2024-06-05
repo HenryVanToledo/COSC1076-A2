@@ -4,6 +4,14 @@
 #include <map>
 #include <string>
 
+// Defined colours
+#define RED "\033[31m"
+#define GREEN "\033[32m"
+#define RESET "\033[0m"
+#define YELLOW "\033[33m"
+#define BLUE "\033[34m"
+#define MAGENTA "\033[35m"
+
 // Coin.h defines the coin structure for managing currency in the system. 
 #define DELIM ","  // delimiter 
 
@@ -12,7 +20,7 @@ enum Denomination
 {
     INVALID = 0, FIVE_CENTS = 5, TEN_CENTS = 10, TWENTY_CENTS = 20, FIFTY_CENTS = 50,
     ONE_DOLLAR = 100, TWO_DOLLARS = 200, FIVE_DOLLARS = 500, TEN_DOLLARS = 1000,
-    TWENTY_DOLLARS = 2000, FIFTY_DOLLARS = 5000, HUNDRED_DOLLARS = 10000
+    TWENTY_DOLLARS = 2000, FIFTY_DOLLARS = 5000
 };
 
 // represents a coin type stored in the cash register perhaps. Each denomination
