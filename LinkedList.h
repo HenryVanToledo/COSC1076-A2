@@ -1,7 +1,7 @@
 #ifndef LINKEDLIST_H
 #define LINKEDLIST_H
-#include "Node.h"
 
+#include "Node.h"
 
 class LinkedList
 {
@@ -9,22 +9,22 @@ public:
     LinkedList();
     ~LinkedList();
 
+    // Functions for LinkedList
     void insertSorted(const std::string& foodID, const std::string& foodName, const std::string& foodDesc, double price);
     void display() const;
-
-    Node* getHead() const { return head; }
-
-    //Clear function
     void clear();
-
     bool remove(const std::string& id);
 
+    //Function to get head and tail
+    Node* getHead() const { return head; }
+    Node* getTail() const { return tail; }
+
 private:
-    // the beginning of the list
+    // Head
     Node* head;
-  
-    // how many nodes are there in the list?
+    // Tail
+    Node* tail;
     unsigned count;
 };
 
-#endif  // LINKEDLIST_H
+#endif // LINKEDLIST_H
