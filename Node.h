@@ -22,12 +22,6 @@
 //The number of denominations of currency available in the system 
 #define NUM_DENOMS 8
 
-/**
- * a structure to represent a price. One of the problems with the floating
- * point formats in C++ like float and double is that they have minor issues
- * of inaccuracy due to rounding. In the case of currency this really is
- * not acceptable so we introduce our own type to keep track of currency.
- **/
 class Price
 {
 public:
@@ -43,17 +37,12 @@ class FoodItem
 public:
     //the unique id for this food item
     std::string id;
-
     //the name of this food item
     std::string name;
-    
     //the description of this food item   
     std::string description;
-    
     //the price of this food item
     Price price;
-    
-    // how many of this food item do we have on hand? 
     unsigned on_hand;    
 };
 
