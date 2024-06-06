@@ -12,6 +12,7 @@ public:
     // Functions for LinkedList
     void insertSorted(const std::string& foodID, const std::string& foodName, const std::string& foodDesc, double price);
     void display() const;
+    void displayReverse() const;
     void clear();
     bool remove(const std::string& id);
 
