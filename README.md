@@ -22,6 +22,6 @@ Minor Enhancements:
 Major Enhancements:
 
 #Henry:
-- Traversale of LinkedList from front to back as well as back to front.
-- Head to tail can be seen in display() within LinkedList.cpp
-- Tail to head (reverse) can be seen in remove() function within LinkedList.cpp
+- Traversale of LinkedList from forwards and backwards.
+- forwards can be seen in display() within LinkedList.cpp
+- Reverse can be seen in displayReverse() function within LinkedList.cpp
