@@ -175,15 +175,16 @@ void validateCoinData(const std::string& coin_file) {
 // opening menu
 void displayMenu() {
     std::cout << "Main Menu:" << std::endl;
-    std::cout << "   1. Display Meal Options" << std::endl;
-    std::cout << "   2. Purchase Meal" << std::endl;
-    std::cout << "   3. Save and Exit" << std::endl;
+    std::cout << "   1. Display Meal Options Alphabetically" << std::endl;
+    std::cout << "   2. Display Meal Options Reverse Alphabetically" << std::endl;
+    std::cout << "   3. Purchase Meal" << std::endl;
+    std::cout << "   4. Save and Exit" << std::endl;
     std::cout << "Administrator-Only Menu:" << std::endl;
-    std::cout << "   4. Add Food" << std::endl;
-    std::cout << "   5. Remove Food" << std::endl;
-    std::cout << "   6. Display Balance" << std::endl;
-    std::cout << "   7. Abort Program" << std::endl;
-    std::cout << "Select your option (1-7) : ";
+    std::cout << "   5. Add Food" << std::endl;
+    std::cout << "   6. Remove Food" << std::endl;
+    std::cout << "   7. Display Balance" << std::endl;
+    std::cout << "   8. Abort Program" << std::endl;
+    std::cout << "Select your option (1-8) : ";
 }
 
 
@@ -213,7 +214,7 @@ bool menuOption(LinkedList& food_list, const std::string& food_file, const std::
         // Clear input buffer and ignore any remaining characters
         std::cin.clear();
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cout << RED << "Invalid option." << RESET <<" Please select a valid number between 1 to 7: \n\n";
+        std::cout << RED << "Invalid option." << RESET <<" Please select a valid number between 1 to 8: \n\n";
         return menuOption(food_list, food_file, coin_file);
     }
 
@@ -223,15 +224,20 @@ bool menuOption(LinkedList& food_list, const std::string& food_file, const std::
         return false;
     }
 
-    // Purchase meal option
     if (option == 2) {
+        food_list.displayReverse();
+        return false;
+    }
+
+    // Purchase meal option
+    if (option == 3) {
         purchaseMeal(food_list);
 
         return false;
     }
 
     // Saves coin and food data to output files
-    if (option == 3) {
+    if (option == 4) {
         saveData(food_file, coin_file, food_list);
         std::cout << GREEN << "Data saved. " << RED << "Exiting program." << RESET << std::endl;
         exit(EXIT_SUCCESS);
@@ -243,27 +249,27 @@ bool menuOption(LinkedList& food_list, const std::string& food_file, const std::
 
 
     // Add food option to food_list
-    if (option == 4) {
+    if (option == 5) {
         addFood(food_list);
         return false;
     }
 
     // 
-    if (option == 5) {
+    if (option == 6) {
         removeFood(food_list);
         return false;
     }
 
-    if (option == 6) {
+    if (option == 7) {
         displayBalance();
         return false;
     }
 
-    if (option == 7) {
+    if (option == 8) {
         terminateProgram(food_list, food_file, coin_file);
     }
 
-    std::cout << RED << "Invalid option." << RESET <<" Number outside the range of 1-7\n\n";
+    std::cout << RED << "Invalid option." << RESET <<" Number outside the range of 1-8\n\n";
     // If input is not a valid integer, clear error flags
     std::cin.clear();
     return menuOption(food_list, food_file, coin_file);
